@@ -16,9 +16,7 @@ log:
   format: "common"
 
 accessLog:
-  # JSON format
   format: json
-  # Filter on status codes, retry attempts and minimal duration
   filters:
     statusCodes:
       - "200-599"
@@ -29,11 +27,38 @@ accessLog:
         User-Agent: keep
         X-Forwarded-For: keep
 
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      httpChallenge:
+        entryPoint: web
+      email: {{ .Values.settings.traefik.certificatesResolver.email }}
+      storage: "/letsencrypt/acme.json"
+      caServer: "https://acme-v02.api.letsencrypt.org/directory"
+
 entryPoints:
   web:
     address: ":80"
   websecure:
     address: ":443"
+    transport:
+      respondingTimeouts:
+        readTimeout: "30m"
+    http:
+      tls:
+        certResolver: "letsencrypt"
+    {{- if .Values.settings.traefik.proxyProtocol.enabled }}
+    proxyProtocol:
+      {{- if .Values.settings.traefik.proxyProtocol.insecure }}
+      # for testing; better to use trustedIPs in prod
+      insecure: true
+      {{- else if .Values.settings.traefik.proxyProtocol.trustedIPs }}
+      trustedIPs:
+        {{- range .Values.settings.traefik.proxyProtocol.trustedIPs }}
+        - {{ . | quote }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
 
 serversTransport:
   insecureSkipVerify: true

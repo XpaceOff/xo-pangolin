@@ -4,9 +4,30 @@
 
 settings:
   pangolin:
-    serverSecretKey: 'SECRET_KEY_HERE'
+    serverSecretKey: ''
+    email:
+      enabled: false
+      # smtp_host: ""
+      # smtp_port: 587
+      # smtp_user: ""
+      # smtp_pass: ""
+      # smtp_tls_reject_unauthorized: false
+
   traefik:
     badgerVersion: "v1.2.0"
+    certificatesResolver:
+      email: ""
+    proxyProtocol:
+      enabled: false
+      insecure: false
+      trustedIPs: []
+  
+  maxmind:
+    enabled: false
+    id: ""
+    key: ""
+    frequency: 24
+    dbs: "GeoLite2-ASN GeoLite2-City GeoLite2-Country"
 
 deployments:
   pangolin:
@@ -14,7 +35,7 @@ deployments:
     image:
       repository: "fosrl/pangolin"
       pullPolicy: IfNotPresent
-      tag: "1.11.0"
+      tag: "1.12.1"
   gerbil:
     replicaCount: 1
     image:
@@ -27,24 +48,15 @@ deployments:
       repository: "traefik"
       pullPolicy: IfNotPresent
       tag: "3.4.0"
+  maxmind:
+    replicaCount: 1
+    image:
+      repository: "maxmindinc/geoipupdate" 
+      pullPolicy: IfNotPresent
+      tag: "v7.1"
 
-# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   hostDomain: pangolin.test
-  enabled: true
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
 # Additional volumes on the output Deployment definition.
 volumes: []
